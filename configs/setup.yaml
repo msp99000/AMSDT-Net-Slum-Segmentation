@@ -1,0 +1,28 @@
+train_params:
+  epochs: 100
+  learning_rate: 0.001
+  batch_size: 16
+  model_save_path: "./checkpoints/"
+  log_dir: "./logs/"
+  early_stopping_patience: 10
+
+kwargs:
+  n_steps: 200
+
+model_params:
+  input_channels: 3
+  num_classes: 1
+  baseline_models:
+    UNet:
+      encoder: "resnet34"
+      weights: "imagenet"
+    FPN:
+      encoder: "resnet34"
+      weights: "imagenet"
+    DeepLabV3Plus:
+      encoder: "resnet34"
+      weights: "imagenet"
+
+loss:
+  alpha: 0.5
+
