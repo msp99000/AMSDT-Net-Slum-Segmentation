@@ -1,0 +1,61 @@
+dataset:
+  image_dir: "data/unique_img"
+  mask_dir: "data/unique_mask"
+
+train_params:
+  epochs: 100
+  learning_rate: 0.001
+  batch_size: 16
+  model_save_path: "./checkpoints/"
+  log_dir: "./logs/"
+  early_stopping_patience: 10
+
+kwargs:
+  n_steps: 200
+
+model_params:
+  input_channels: 3
+  num_classes: 1
+  multi_scale_channels: 64
+  residual_channels: 64
+  baseline_models:
+    UNet:
+      encoder: "resnet34"
+      weights: "imagenet"
+    FPN:
+      encoder: "resnet34"
+      weights: "imagenet"
+    DeepLabV3Plus:
+      encoder: "resnet34"
+      weights: "imagenet"
+  transformer:
+    dim: 64
+    depth: 6
+    heads: 8
+    mlp_dim: 128
+    dropout: 0.1
+  fpn_channels: [64, 32, 16, 8]
+  channel_attention_reduction_ratio: 16
+  spactial_attention_kernel_size: 7
+  decoder_channels: [8, 16, 32]
+
+loss:
+  alpha: 0.5
+
+input_channels: 3 # RGB satellite imagery
+multi_scale_channels: 64
+residual_channels: 64
+num_classes: 2 # Assuming binary classification (slum / non-slum)
+
+transformer:
+  dim: 64
+  depth: 6
+  heads: 8
+  mlp_dim: 128
+  dropout: 0.1
+
+fpn_channels: [64, 32, 16, 8] # Channels for each FPN layer
+channel_attention_reduction_ratio: 16
+spactial_attention_kernel_size: 7
+decoder_channels: [8, 16, 32] # Channels for each decoder layer
+
