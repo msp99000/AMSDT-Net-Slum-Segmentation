@@ -13,6 +13,7 @@ from captum.attr import IntegratedGradients, visualization as viz
 from pathlib import Path
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.model_selection import KFold
+from sklearn.metrics import precision_score, recall_score
 from tqdm import tqdm
 
 class ModelComparisonFramework:
@@ -23,10 +24,12 @@ class ModelComparisonFramework:
         
         # init config and logger
         self._load_config(config_path)
-        self.logger = self._setup_logging()
 
         # setup directories
         self._setup_directories()
+
+        # setup logging
+        self.logger = self._setup_logging()
         
         # init the models to train & compare
         self.models = self._initialize_models()
@@ -66,18 +69,19 @@ class ModelComparisonFramework:
 
     def _setup_logging(self):
         # Configure logging with Loguru
-        return logger.add(self.logs_dir / "full_logs.log", 
+        logger.add(self.logs_dir / "full_logs.log", 
                           colorize=True, 
                           format="<green>{time:YYYY-MM-DD at HH:mm:ss}</green> <level>{message}</level>", 
                           level="INFO")
+        return logger
 
     def _initialize_models(self):
 
         # Initialize SlumSegNet and baseline models
         models = {
             "SlumSegNet": SlumSegNet(
-                self.config['model_params']['input_channels'],
-                self.config['model_params']['num_classes']
+                self.config['model_params']
+                # self.config['model_params']['num_classes']
             ).to(self.device)
         }
 
@@ -90,6 +94,48 @@ class ModelComparisonFramework:
             ).to(self.device)
 
         return models
+
+    from sklearn.metrics import precision_score, recall_score
+
+    def _setup_metrics(self):
+        # Define your evaluation metrics here, including precision and recall
+        metrics = {
+            "accuracy": self.compute_accuracy,
+            "f1_score": self.compute_f1_score,
+            "iou_score": self.compute_iou,
+            "precision": self.compute_precision,
+            "recall": self.compute_recall
+        }
+        return metrics
+
+    def compute_accuracy(self, y_true, y_pred):
+        y_true = y_true.cpu().numpy()
+        y_pred = y_pred.cpu().numpy()
+        return accuracy_score(y_true, y_pred)
+
+    def compute_f1_score(self, y_true, y_pred):
+        y_true = y_true.cpu().numpy()
+        y_pred = y_pred.cpu().numpy()
+        return f1_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
+
+    def compute_iou(self, y_true, y_pred):
+        y_true = y_true.cpu().numpy()
+        y_pred = y_pred.cpu().numpy()
+        intersection = np.logical_and(y_true, y_pred)
+        union = np.logical_or(y_true, y_pred)
+        iou = np.sum(intersection) / np.sum(union)
+        return iou
+
+    def compute_precision(self, y_true, y_pred):
+        y_true = y_true.cpu().numpy()
+        y_pred = y_pred.cpu().numpy()
+        return precision_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
+
+    def compute_recall(self, y_true, y_pred):
+        y_true = y_true.cpu().numpy()
+        y_pred = y_pred.cpu().numpy()
+        return recall_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
+
 
     def train_and_evaluate_model(self, model, model_name):
 
@@ -167,7 +213,7 @@ class ModelComparisonFramework:
     def _plot_ablation_results(self, ablation_result, model_name):
 
         # Plot results of the ablation study
-        metrics = ['iou_score', 'fscore', 'accuracy', 'recall', 'precision']
+        metrics = ['iou_score', 'f1_score', 'accuracy', 'recall', 'precision']
         ablation_results = {metric: [] for metric in metrics}
         ablation_types = []
 
@@ -241,7 +287,7 @@ class ModelComparisonFramework:
     def visualize_training_results(self):
 
         # Visualize training results for all models
-        metrics = ['iou_score', 'fscore', 'accuracy', 'recall', 'precision']
+        metrics = ['iou_score', 'f1_score', 'accuracy', 'recall', 'precision']
         epochs = range(1, len(next(iter(self.history.values()))) + 1)
 
         data = {metric: {model: [h['valid'][metric] for h in history] 
