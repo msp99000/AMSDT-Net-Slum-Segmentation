@@ -1,0 +1,47 @@
+MEMO: Novel Architecture for Slum Segmentation
+
+The Advanced Multi-Scale Dynamic Transformers Networks (AMSDT-Net, btw, ik it's not a cool name) is a novel CV architecture designed for high-precision slum segmentation using satellite imagery.
+
+This Architecture has two main components jsut like transformers (Encoder & Decoder), Here's the each components of the proposed architecture:
+
+1. Input: Single-modality, RGB satellite imagery (could be OSM data too) and Segmentation mask (should be manually annotated precise mask)
+
+2. Multi-Scale Feature Extraction:
+   - Parallel convolutional branches with different dilation rates
+   - Captures features at different/multiple scales, important for identifying slums of different sizes.
+
+3. Encoder:
+   - Residual blocks for improved gradient flow :)
+   - Transformer-based encoder for capturing long-range/gloabal dependencies (chosed ViT with self-attention over CNN based encoder)
+   - Additional residual connections around the transformer for better information preservation.
+
+4. Decoder:
+   - Series of dynamic convolutions (kernel weights are generated based on input features.) to adds adaptability to different slum patterns and geographical contexts.
+   - Gradually upsamples and refines features while maintaining gradient flow through residual connection.
+
+5. Boundary Refinement Module:
+   - for enhancing segmentation boundary precision
+   - Uses residual connections for fine-grained adjustments.
+
+6. Output:
+   - The model's genearate pixel-wise probability (binary segmentation mask), representing the likelihood of each pixel belonging to slum or non-slum area.
+
+7. Loss Function:
+   - Combined loss using Cross-Entropy and Dice Loss (ayk, it make sure all the predicted positive cases are closer to the actual correct ones/truth)
+   - Balances pixel-wise accuracy and region-based segmentation quality
+
+8. Key Innovations:
+   - Multi-scale feature extraction for handling diverse slum sizes
+   - Residual connections throughout the network for improved gradient flow and feature preservation
+   - Transformer encoder (hierarchical ViT) for capturing complex spatial relationships
+   - Dynamic convolutions for adaptive processing
+   - Specialized boundary refinement modules for improved edge delineation
+
+This is an initial ideadtion for the architecture, i would also experiment whether if we could add more layers for further enhancement:
+	- Normalization: to normalize gradient fluctuation (solves internal co-variance shift)
+	- Dynamic Convolution Net(GCN) module (from torch_geometrics)
+	- Adversarial training with a discriminator module
+	- Contrastive learning module
+	- I guess, above two could be added with the curent loss for a combined criteration with objective to reduce it.
+
+This architecture addresses the challenges of slum segmentation by utilizing advanced deep learning techniques, multi-scale feature extraction, and extensive use of residual connections. It offers improved accuracy, stability during training, and generalization across diverse urban landscapes and varying slum characteristics. The addition of residual connections (from ResNet) allows for better information flow through the network, potentially leading to improved performance and easier training.
