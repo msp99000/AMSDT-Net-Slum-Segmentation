@@ -9,8 +9,9 @@ __pycache__/
 # MacOS temp files
 .DS_Store
 
-# Dataset Folder
+# Dataset & resources Folder
 data/
+resources/
 
 # Distribution / packaging
 .Python
