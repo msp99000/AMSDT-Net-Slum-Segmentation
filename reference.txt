@@ -1,0 +1,6 @@
+https://www.kaggle.com/code/balraj98/unet-for-building-segmentation-pytorch
+https://bhimraj.com.np/blog/pytorch-unet-image-segmentation-implementation
+https://github.com/usuyama/pytorch-unet
+https://github.com/milesial/Pytorch-UNet
+https://github.com/qubvel-org/segmentation_models.pytorch (prebuilt models)
+https://github.com/Esri/arcgis-python-api/blob/master/samples/04_gis_analysts_data_scientists/extracting_slums_from_satellite_imagery.ipynb
