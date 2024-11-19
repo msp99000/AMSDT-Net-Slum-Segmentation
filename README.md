@@ -27,29 +27,30 @@ Below is the file structure of the project:
 
 ```
 AMSDT-Net-Slum-Segmentation
-├── architecture
-│   ├── init.py
-│   ├── boundary_refine.py
-│   ├── cbam.py
-│   ├── dynamic_conv.py
-│   ├── encoder.py
-│   ├── fpn.py
-│   ├── input.py
-│   ├── loss.py
-│   ├── model.py
-│   ├── multiscale_feature.py
-│   └── residual.py
-├── configs
-│   ├── config.yaml
-│   ├── model.yaml
-│   └── setup.yaml
-├── config.yaml
-├── dataset.py
-├── initial_memo.txt
-├── main.py
-├── reference.txt
-├── train.py
-└── utils.py
+    │
+    ├── architecture
+    │   ├── init.py
+    │   ├── boundary_refine.py
+    │   ├── cbam.py
+    │   ├── dynamic_conv.py
+    │   ├── encoder.py
+    │   ├── fpn.py
+    │   ├── input.py
+    │   ├── loss.py
+    │   ├── model.py
+    │   ├── multiscale_feature.py
+    │   └── residual.py
+    ├── configs
+    │   ├── config.yaml
+    │   ├── model.yaml
+    │   └── setup.yaml
+    ├── config.yaml
+    ├── dataset.py
+    ├── initial_memo.txt
+    ├── main.py
+    ├── reference.txt
+    ├── train.py
+    └── utils.py
 ```
 
 
