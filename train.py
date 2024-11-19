@@ -70,8 +70,7 @@ class ModelComparisonFramework:
 
         for batch in tqdm(data_loader, desc="Training" if is_train else "Validation"):
             images, masks = batch
-            print(images.shape)
-            print(masks.shape)
+            print(f"Image shape: {images.shape}, Mask shape: {masks.shape}")
             images, masks = images.to(self.device), masks.to(self.device)
 
             with torch.set_grad_enabled(is_train):
