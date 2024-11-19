@@ -26,6 +26,7 @@ AMSDT-Net is designed to segment slum areas from satellite images. The model int
 Below is the file structure of the project:
 
 ```
+AMSDT-Net-Slum-Segmentation
 ├── architecture
 │   ├── init.py
 │   ├── boundary_refine.py
