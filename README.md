@@ -40,7 +40,7 @@ Below is the file structure of the project:
 │   └── residual.py
 ├── configs
 │   ├── config.yaml
-    ├── model.yaml
+│   ├── model.yaml
 │   └── setup.yaml
 ├── config.yaml
 ├── dataset.py
