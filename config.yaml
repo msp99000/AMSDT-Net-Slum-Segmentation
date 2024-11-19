@@ -1,6 +1,6 @@
 dataset:
-  image_dir: "data/unique_img"
-  mask_dir: "data/unique_mask"
+  image_dir: "./data/unique_img/"
+  mask_dir: "./data/unique_mask/"
 
 train_params:
   epochs: 100
@@ -19,7 +19,7 @@ model_params:
   multi_scale_channels: 64
   residual_channels: 64
   baseline_models:
-    UNet:
+    Unet:
       encoder: "resnet34"
       weights: "imagenet"
     FPN:
