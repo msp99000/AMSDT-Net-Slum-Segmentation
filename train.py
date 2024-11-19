@@ -4,6 +4,8 @@ import torch
 from torch import nn
 import numpy as np
 import segmentation_models_pytorch as smp
+from segmentation_models_pytorch.metrics import accuracy, f1_score, iou_score, precision, recall
+from segmentation_models_pytorch.utils.train import TrainEpoch, ValidEpoch
 import matplotlib.pyplot as plt
 import pandas as pd
 from architecture.loss import CombinedLoss
@@ -19,28 +21,23 @@ from tqdm import tqdm
 class ModelComparisonFramework:
     def __init__(self, config_path, device="cpu"):
         
-        # Initialize the framework with configuration and device
         self.device = device
-        
-        # init config and logger
         self._load_config(config_path)
-
-        # setup directories
         self._setup_directories()
-
-        # setup logging
         self.logger = self._setup_logging()
-        
-        # init the models to train & compare
         self.models = self._initialize_models()
-
-        # init loss for training
         self.loss = CombinedLoss(self.config["loss"]["alpha"])
-        
-        # init metrics to calculate
-        self.metrics = self._setup_metrics()
-        
-        # init data loaders
+
+        # Initialize Metrics
+        self.metrics = [
+            accuracy,
+            f1_score,
+            iou_score,
+            precision,
+            recall
+        ]
+                
+        # Data loaders
         self.train_loader, self.valid_loader = get_loaders(
             self.image_dir, self.mask_dir, 
             self.config["train_params"]["batch_size"], 
@@ -66,6 +63,38 @@ class ModelComparisonFramework:
 
         for dir in [self.working_dir, self.model_dir, self.plots_dir, self.logs_dir]:
             dir.mkdir(parents=True, exist_ok=True)
+
+    def _run_one_epoch(self, model, data_loader, optimizer=None, is_train=True):
+        epoch_loss = 0
+        # self.metrics.reset()
+
+        for batch in tqdm(data_loader, desc="Training" if is_train else "Validation"):
+            images, masks = batch
+            print(images.shape)
+            print(masks.shape)
+            images, masks = images.to(self.device), masks.to(self.device)
+
+            with torch.set_grad_enabled(is_train):
+                outputs = model(images)
+                loss = self.loss(outputs, masks)
+                epoch_loss += loss.item()
+                self.metrics.update(outputs, masks)
+
+                if is_train:
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+
+        logs = {
+            "loss": epoch_loss / len(data_loader),
+            "iou_score": self.metrics["iou_score"].compute().item(),
+            "fscore": self.metrics["f1_score"].compute().item(),
+            "accuracy": self.metrics["accuracy"].compute().item(),
+            "precision": self.metrics["precision"].compute().item(),
+            "recall": self.metrics["recall"].compute().item(),
+        }
+        # self.metrics.reset()
+        return logs
 
     def _setup_logging(self):
         # Configure logging with Loguru
@@ -95,93 +124,56 @@ class ModelComparisonFramework:
 
         return models
 
-    from sklearn.metrics import precision_score, recall_score
-
-    def _setup_metrics(self):
-        # Define your evaluation metrics here, including precision and recall
-        metrics = {
-            "accuracy": self.compute_accuracy,
-            "f1_score": self.compute_f1_score,
-            "iou_score": self.compute_iou,
-            "precision": self.compute_precision,
-            "recall": self.compute_recall
-        }
-        return metrics
-
-    def compute_accuracy(self, y_true, y_pred):
-        y_true = y_true.cpu().numpy()
-        y_pred = y_pred.cpu().numpy()
-        return accuracy_score(y_true, y_pred)
-
-    def compute_f1_score(self, y_true, y_pred):
-        y_true = y_true.cpu().numpy()
-        y_pred = y_pred.cpu().numpy()
-        return f1_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
-
-    def compute_iou(self, y_true, y_pred):
-        y_true = y_true.cpu().numpy()
-        y_pred = y_pred.cpu().numpy()
-        intersection = np.logical_and(y_true, y_pred)
-        union = np.logical_or(y_true, y_pred)
-        iou = np.sum(intersection) / np.sum(union)
-        return iou
-
-    def compute_precision(self, y_true, y_pred):
-        y_true = y_true.cpu().numpy()
-        y_pred = y_pred.cpu().numpy()
-        return precision_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
-
-    def compute_recall(self, y_true, y_pred):
-        y_true = y_true.cpu().numpy()
-        y_pred = y_pred.cpu().numpy()
-        return recall_score(y_true, y_pred, average='binary')  # or 'macro' depending on your need
-
 
     def train_and_evaluate_model(self, model, model_name):
-
-        # Train and evaluate a single model
         train_optimizer = torch.optim.Adam(
-            filter(lambda p: p.requires_grad, model.parameters()), 
-            lr=self.config['train_params']['learning_rate']
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=self.config["train_params"]["learning_rate"],
         )
-        scheduler = ReduceLROnPlateau(train_optimizer, mode='max', factor=0.1, patience=10, verbose=True)
-
-        trainer = smp.utils.train.TrainEpoch(
-            model, loss=self.loss, metrics=self.metrics, 
-            optimizer=train_optimizer, device=self.device, verbose=True,
-        )
-        validator = smp.utils.train.ValidEpoch(
-            model, loss=self.loss, metrics=self.metrics, 
-            device=self.device, verbose=True,
+        scheduler = ReduceLROnPlateau(
+            train_optimizer, mode="max", factor=0.1, patience=10, verbose=True
         )
 
         best_iou = 0
         early_stop_counter = 0
         history = []
 
-        for epoch in range(self.config['train_params']['epochs']):
-            self.logger.info(f'Epoch: {epoch + 1}')
-            train_logs = trainer.run(self.train_loader)
-            valid_logs = validator.run(self.valid_loader)
-            
-            scheduler.step(valid_logs['iou_score'])
-            
-            history.append({
-                'epoch': epoch + 1,
-                'train': train_logs,
-                'valid': valid_logs
-            })
+        for epoch in range(self.config["train_params"]["epochs"]):
+            self.logger.info(f"Epoch {epoch + 1}/{self.config['train_params']['epochs']}")
 
-            if valid_logs['iou_score'] > best_iou:
-                best_iou = valid_logs['iou_score']
+            # Training phase
+            model.train()
+            train_logs = self._run_one_epoch(
+                model, self.train_loader, train_optimizer, is_train=True
+            )
+
+            # Validation phase
+            model.eval()
+            valid_logs = self._run_one_epoch(model, self.valid_loader, is_train=False)
+
+            # Scheduler step based on validation IOU
+            scheduler.step(valid_logs["iou_score"])
+
+            # Logging and history update
+            history.append({"epoch": epoch + 1, "train": train_logs, "valid": valid_logs})
+            self.logger.info(
+                f"Train Loss: {train_logs['loss']:.4f}, Valid Loss: {valid_logs['loss']:.4f}, "
+                f"Valid IOU: {valid_logs['iou_score']:.4f}"
+            )
+
+            # Save best model
+            if valid_logs["iou_score"] > best_iou:
+                best_iou = valid_logs["iou_score"]
                 torch.save(model.state_dict(), self.model_dir / f"best_model_{model_name}.pth")
-                self.logger.info(f"New best model saved with IOU: {best_iou}")
+                self.logger.info(f"New best model saved with IOU: {best_iou:.4f}")
                 early_stop_counter = 0
             else:
                 early_stop_counter += 1
-                self.logger.info(f"No improvement. Early stop counter: {early_stop_counter}/{self.config['train_params']['early_stopping_patience']}")
-
-                if early_stop_counter >= self.config['train_params']['early_stopping_patience']:
+                self.logger.info(
+                    f"No improvement. Early stop counter: {early_stop_counter}/"
+                    f"{self.config['train_params']['early_stopping_patience']}"
+                )
+                if early_stop_counter >= self.config["train_params"]["early_stopping_patience"]:
                     self.logger.info("Early stopping triggered.")
                     break
 
@@ -414,3 +406,4 @@ if __name__ == "__main__":
     
     # Run full comparison
     comparison.run_full_comparison()
+
