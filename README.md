@@ -39,8 +39,10 @@ Below is the file structure of the project:
 │   ├── multiscale_feature.py
 │   └── residual.py
 ├── configs
-│   ├── model.yaml
+│   ├── config.yaml
+    ├── model.yaml
 │   └── setup.yaml
+├── config.yaml
 ├── dataset.py
 ├── initial_memo.txt
 ├── main.py
