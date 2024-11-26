@@ -52,10 +52,10 @@ class SlumSegNet(nn.Module):
         self.boundary_refinement = BoundaryRefinementModule(config['decoder_channels'][-1])
         
         self.final_conv = nn.Conv2d(config['decoder_channels'][-1], config['num_classes'], kernel_size=1)
-    
+
     def forward(self, satellite):
+        # satellite will have shape [batch_size, 3, patch_size, patch_size]
         x = self.multi_scale(satellite)
-        
         x = self.residual1(x)
         
         # Transformer encoder
@@ -85,3 +85,37 @@ class SlumSegNet(nn.Module):
         x = self.final_conv(x)
         
         return x
+
+
+    # def forward(self, satellite):
+    #     x = self.multi_scale(satellite)
+        
+    #     x = self.residual1(x)
+        
+    #     # Transformer encoder
+    #     x_res = x
+    #     x = rearrange(x, 'b c h w -> (h w) b c')
+    #     x = self.transformer_encoder(x)
+    #     x = rearrange(x, '(h w) b c -> b c h w', h=satellite.shape[2], w=satellite.shape[3])
+    #     x = x + x_res  # Residual connection around transformer
+        
+    #     x = self.residual2(x)
+        
+    #     # FPN and CBAM
+    #     fpn_features = [x]
+    #     for fpn, cbam in zip(self.fpn_layers, self.cbam_layers):
+    #         x = fpn(x, fpn_features[-1] if len(fpn_features) > 1 else None)
+    #         x = cbam(x)
+    #         fpn_features.append(x)
+        
+    #     # Decoder
+    #     for conv in self.decoder:
+    #         x = conv(x)
+        
+    #     # Boundary refinement
+    #     x = self.boundary_refinement(x)
+        
+    #     # Final convolution
+    #     x = self.final_conv(x)
+        
+    #     return x
