@@ -18,6 +18,7 @@ model_params:
   num_classes: 1
   multi_scale_channels: 64
   residual_channels: 64
+  patch_size: 128
   baseline_models:
     Unet:
       encoder: "resnet34"
