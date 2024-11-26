@@ -28,6 +28,8 @@ class ModelComparisonFramework:
         self.models = self._initialize_models()
         self.loss = CombinedLoss(self.config["loss"]["alpha"])
 
+        patch_size = self.config['model_params']['patch_size']
+
         # Initialize Metrics
         self.metrics = [
             accuracy,
@@ -41,7 +43,7 @@ class ModelComparisonFramework:
         self.train_loader, self.valid_loader = get_loaders(
             self.image_dir, self.mask_dir, 
             self.config["train_params"]["batch_size"], 
-            get_training_augmentation(), get_validation_augmentation()
+            get_training_augmentation(patch_size, patch_size), get_validation_augmentation(patch_size, patch_size)
         )
         self.history = {}
 
