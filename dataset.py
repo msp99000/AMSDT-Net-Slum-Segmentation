@@ -4,7 +4,7 @@ import cv2
 import numpy as np 
 
 class SlumSegmentationDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None, patch_size=128, stride=128):
+    def __init__(self, image_dir, mask_dir, transform=None, patch_size=4, stride=4):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.transform = transform
