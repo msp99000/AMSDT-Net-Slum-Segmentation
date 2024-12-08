@@ -5,7 +5,7 @@ dataset:
 train_params:
   epochs: 100
   learning_rate: 0.001
-  batch_size: 16
+  batch_size: 8
   model_save_path: "./checkpoints/"
   log_dir: "./logs/"
   early_stopping_patience: 10
@@ -18,7 +18,7 @@ model_params:
   num_classes: 1
   multi_scale_channels: 64
   residual_channels: 64
-  patch_size: 128
+  patch_size: 4
   baseline_models:
     Unet:
       encoder: "resnet34"
