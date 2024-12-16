@@ -45,6 +45,7 @@ class ModelComparisonFramework:
             self.config["train_params"]["batch_size"], 
             get_training_augmentation(patch_size, patch_size), get_validation_augmentation(patch_size, patch_size)
         )
+        
         self.history = {}
 
     def _load_config(self, config_path):
