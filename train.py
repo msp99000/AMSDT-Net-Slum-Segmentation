@@ -43,9 +43,11 @@ class ModelComparisonFramework:
         self.train_loader, self.valid_loader = get_loaders(
             self.image_dir, self.mask_dir, 
             self.config["train_params"]["batch_size"], 
-            get_training_augmentation(patch_size, patch_size), get_validation_augmentation(patch_size, patch_size)
+             get_training_augmentation(), get_validation_augmentation()
+             # When using patching
+            # get_training_augmentation(patch_size, patch_size), get_validation_augmentation(patch_size, patch_size) 
         )
-        
+
         self.history = {}
 
     def _load_config(self, config_path):
