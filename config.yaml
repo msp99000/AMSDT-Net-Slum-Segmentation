@@ -1,6 +1,6 @@
 dataset:
-  image_dir: "./data/unique_img/"
-  mask_dir: "./data/unique_mask/"
+  image_dir: "./data/medellin/img/medellin.tif"
+  mask_dir: "./data/medellin/mask/medellin_ground_truth.tif"
 
 train_params:
   epochs: 100
