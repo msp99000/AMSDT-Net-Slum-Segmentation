@@ -14,11 +14,12 @@ kwargs:
   n_steps: 200
 
 model_params:
-  input_channels: 3
+  input_channels: 10
   num_classes: 1
   multi_scale_channels: 64
   residual_channels: 64
-  patch_size: 4
+  patch_size: 64
+  stride: 64
   baseline_models:
     Unet:
       encoder: "resnet34"
